@@ -17,13 +17,12 @@ type Control struct {
 	client influxdb2.Client     //client for influxdb
 }
 
-/*------------------------Ken Debug : seqId : 1(insert) ->  seqId : 3(report) ----------------------------------*/
 var (
 	timeToWait           = "w10ms"
 	subsequentActionType = "continue"
 	actionType           = "report"
 	actionId             = int64(1)
-	seqId                = int64(3) //int64(1)
+	seqId                = int64(1)
 	funcId               = int64(0)
 	hPort                = int64(8080)
 	rPort                = int64(4560)
@@ -74,9 +73,7 @@ func (c Control) getEnbList() ([]*xapp.RNIBNbIdentity, error) {
 	return enbs, nil
 }
 
-/*------------------------Ken Debug : Add gNB info ----------------------------------*/
 func (c *Control) getGnbList() ([]*xapp.RNIBNbIdentity, error) {
-
 	gnbs, err := xapp.Rnib.GetListGnbIds()
 
 	if err != nil {
@@ -85,32 +82,9 @@ func (c *Control) getGnbList() ([]*xapp.RNIBNbIdentity, error) {
 	}
 	xapp.Logger.Info("List of connected gNBs :")
 	for index, gnb := range gnbs {
-
-		gNBName := gnbs[index].InventoryName
-		nodebInfor, err := xapp.Rnib.GetNodeb(gNBName)
-		if err != nil {
-			xapp.Logger.Error("Failed to get NodebInfor for %s, error: %v", gNBName, err)
-			continue
-		}
-		xapp.Logger.Debug("nodebInfor is %v", nodebInfor)
-
-		if nodebInfor.ConnectionStatus == 1 { //1 means CONNECTED
-			gNBInfo, err := c.MapE2SM(nodebInfor)
-			if err != nil {
-				xapp.Logger.Error("Failed to map E2SM for %s, error: %v", gNBName, err)
-				continue
-			}
-			c.AppendgNB(gNBName, gNBInfo)
-
-		} else { //Disconnect >> delete
-			c.RemovegNB(gNBName)
-		}
-
 		xapp.Logger.Info("%d. gnbid : %s", index+1, gnb.InventoryName)
-
 	}
 	return gnbs, nil
-
 }
 
 func (c *Control) getnbList() []*xapp.RNIBNbIdentity {
@@ -127,25 +101,6 @@ func (c *Control) getnbList() []*xapp.RNIBNbIdentity {
 	return nbs
 }
 
-/* Ken Debug : sub params  =
-14T19:17:18"},"msg":"*****body: {\n \"ClientEndpoint\": {\n  \"HTTPPort\": 8080,\n  \"Host\": \"service-ricxapp-xappkpimon-http.ricxapp\",\n
-\"RMRPort\": 4560\n },\n \"Meid\": \"gnb_466_000_12345c\",
-\n \"RANFunctionID\": 0,\n \"SubscriptionDetails\":
- [\n  {\n   \"ActionToBeSetupList\":
-
-
- [\n    {\n     \"ActionDefinition\": [\n      5678\n     ],
- \n
-   \"ActionID\": 1,
-   \n
-    \"ActionType\": \"report\",
-	\n
-    \"SubsequentAction\":
-	{\n      \"SubsequentActionType\": \"continue\",\n      \"TimeToWait\": \"w10ms\"\n     }
-\n    }\n   ]
-
-,\n   \"EventTriggers\": [\n    1234\n   ],\n   \"XappEventInstanceId\": 1\n  }\n ]\n}"}
-*/
 func (c Control) sendSubscription(meid string) {
 	//Create Subscription message and send it to RIC platform
 	xapp.Logger.Info("Sending subscription request for MEID: %v", meid)
@@ -154,24 +109,18 @@ func (c Control) sendSubscription(meid string) {
 		ClientEndpoint: &clientEndpoint,
 		Meid:           &meid,
 		RANFunctionID:  &funcId,
-
 		SubscriptionDetails: clientmodel.SubscriptionDetailsList{
 			&clientmodel.SubscriptionDetail{
 				EventTriggers: clientmodel.EventTriggerDefinition{
-
-					/*------------------------Ken Debug : EventTriggers : 1234 ->  EventTriggers : 13 ----------------------------------*/
 					1234,
 				},
 				XappEventInstanceID: &seqId,
 				ActionToBeSetupList: clientmodel.ActionsToBeSetup{
 					&clientmodel.ActionToBeSetup{
-
 						ActionID:   &actionId,
 						ActionType: &actionType,
-
-						/*------------------------Ken Debug : ricStyleType : 5678 ->  ricStyleType : 1 ----------------------------------*/
 						ActionDefinition: clientmodel.ActionDefinition{
-							actionId,
+							5678,
 						},
 						SubsequentAction: &clientmodel.SubsequentAction{
 							SubsequentActionType: &subsequentActionType,
@@ -316,7 +265,7 @@ func (c *Control) handleIndication(params *xapp.RMRParams) (err error) {
 			}
 
 		}
-		/*------------------------Ken Debug : CellIDHdr =  ""  ----------------------------------*/
+
 		if indHdrFormat1.NRCGI != nil {
 
 			log.Printf("nRCGI.PlmnID: %x", indHdrFormat1.NRCGI.PlmnID.Buf)
@@ -402,7 +351,6 @@ func (c *Control) handleIndication(params *xapp.RMRParams) (err error) {
 		return
 	}
 
-	/*------------------------Ken Debug : extract indMsg----------------------------------*/
 	indMsg, err := e2sm.GetIndicationMessage(indicationMsg.IndMessage)
 	if err != nil {
 		xapp.Logger.Error("Failed to decode RIC Indication Message: %v", err)
@@ -419,8 +367,6 @@ func (c *Control) handleIndication(params *xapp.RMRParams) (err error) {
 	var availPRBDL int64
 	var availPRBUL int64
 	//Decoding RIC Indication Message
-	/*------------------------Ken Debug : extract indMsg----------------------------------*/
-	/*------------------------Ken Debug : IndMsgType  =  0 or 1 ----------------------------------*/
 	log.Printf("-----------RIC Indication Message-----------")
 	log.Printf("StyleType: %d", indMsg.StyleType)
 	if indMsg.IndMsgType == 1 {
@@ -442,15 +388,10 @@ func (c *Control) handleIndication(params *xapp.RMRParams) (err error) {
 			log.Printf("PMContainer[%d]: ", PMContainerCounter)
 
 			pmContainer := indMsgFormat1.PMContainers[PMContainerCounter]
-			/*------------------------Ken Debug :
-			  IndMsg:
-				pmContainer.PFContainer
-			  	pmContainer.RANContainer
 
-			  ----------------------------------*/
 			if pmContainer.PFContainer != nil {
 				containerType = pmContainer.PFContainer.ContainerType
-				/*------------------------Ken Debug : 				PFContainerType: 1 or 2 ----------------------------------*/
+
 				log.Printf("PFContainerType: %d", containerType)
 
 				if containerType == 1 {
@@ -460,7 +401,7 @@ func (c *Control) handleIndication(params *xapp.RMRParams) (err error) {
 
 					cellResourceReportCount := oDU.CellResourceReportCount
 					log.Printf("CellResourceReportCount: %d", cellResourceReportCount)
-					/*------------------------Ken Debug : 	cellResourceReportCounter =  3  ----------------------------------*/
+
 					for cellResourceReportCounter := 0; cellResourceReportCounter < cellResourceReportCount; cellResourceReportCounter++ {
 						log.Printf("CellResourceReport[%d]: ", cellResourceReportCounter)
 
@@ -799,18 +740,6 @@ func (c *Control) handleIndication(params *xapp.RMRParams) (err error) {
 								}
 							}
 
-							/* Ken Debug : Write NR Cell ID  */
-
-							err = json.Unmarshal(cellResourceReportItem.NRCGI.NRCellID.Buf, &ueMetrics.NeighborCellsID)
-							log.Printf("ueMetrics.NeighborCellsID: %+v", ueMetrics.NeighborCellsID)
-
-							if err != nil {
-								xapp.Logger.Error("Failed to Unmarshal NeighborCellID in CU-CP Usage Report with UE ID [%d]: %v", ueID, err)
-								log.Printf("Failed to Unmarshal NeighborCellID in CU-CP Usage Report with UE ID [%d]: %v", ueID, err)
-								log.Printf("NeighborCellID raw data: %x", cellResourceReportItem.NRCGI.NRCellID.Buf)
-								continue
-							}
-
 							if ueResourceReportItem.NeighborCellRF != nil {
 								err = json.Unmarshal(ueResourceReportItem.NeighborCellRF.Buf, &ueMetrics.NeighborCellsRF)
 								log.Printf("ueMetrics.NeighborCellsRF: %+v", ueMetrics.NeighborCellsRF)
@@ -895,14 +824,6 @@ func (c *Control) handleIndication(params *xapp.RMRParams) (err error) {
 					continue
 				}
 			}
-			/*------------------------Ken Debug :
-			  IndMsg:
-				Cell Metrics is in the
-
-				pfContainer
-
-
-			  ----------------------------------*/
 
 			if flag {
 				var cellMetrics CellMetricsEntry
@@ -950,22 +871,11 @@ func (c *Control) writeUeMetrics_db(ueMetrics UeMetricsEntry) {
 	if err != nil {
 		xapp.Logger.Error("Marshal UE Metrics failed!")
 	}
-	/*
-		p := influxdb2.NewPoint("stat",
-		map[string]string{"unit": "temperature"},
-		map[string]interface{}{"avg": 24.5, "max": 45.0},
-		time.Now())
-		// write point immediately
-		writeAPI.WritePoint(context.Background(), p)
-		xapp.Logger.Info("[Ken Debug] Wrote Dummy UE Metrics to InfluxDB")
-	*/
-
 	p := influxdb2.NewPointWithMeasurement("ricIndication_UeMetrics").
 		AddField("UE Metrics", ueMetricsJSON).
 		SetTime(time.Now())
 	writeAPI.WritePoint(context.Background(), p)
-
-	xapp.Logger.Info("[Ken Debug] Wrote Dummy UE Metrics to InfluxDB")
+	xapp.Logger.Info("Wrote UE Metrics to InfluxDB")
 }
 func (c *Control) writeCellMetrics_db(cellMetrics CellMetricsEntry) {
 	//Write cell metrics to InfluxDB using API
