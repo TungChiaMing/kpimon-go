@@ -2,8 +2,18 @@
 FROM nexus3.o-ran-sc.org:10002/o-ran-sc/bldr-ubuntu18-c-go:1.9.0 as build-kpimon
 WORKDIR /opt
 # Install RMR client
-COPY bin/rmr* ./
-RUN dpkg -i rmr_4.8.0_amd64.deb; dpkg -i rmr-dev_4.8.0_amd64.deb; rm rmr*
+
+# Ken Debug :  command COPY bin/rmr* ./ -> will cause COPY failed: no source files were specified
+#COPY bin/rmr* ./
+# Ken Debug : download rmr instead of COPY from a location
+RUN wget -nv --content-disposition https://packagecloud.io/o-ran-sc/release/packages/debian/stretch/rmr_4.8.0_amd64.deb/download.deb
+RUN wget -nv --content-disposition https://packagecloud.io/o-ran-sc/release/packages/debian/stretch/rmr-dev_4.8.0_amd64.deb/download.deb
+
+# Ken Debug : dpkg rmr 
+#RUN dpkg -i rmr_4.8.0_amd64.deb; dpkg -i rmr-dev_4.8.0_amd64.deb; rm rmr*
+RUN dpkg -i rmr_4.8.0_amd64.deb; dpkg -i rmr-dev_4.8.0_amd64.deb; rm -rf rmr_4.8.0_amd64.deb; rm -rf rmr-dev_4.8.0_amd64.deb
+
+
 RUN apt-get update && \
     apt-get -y install gcc
 COPY e2ap/ e2ap/

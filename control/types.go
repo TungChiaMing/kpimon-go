@@ -3,7 +3,7 @@ package control
 const MAX_SUBSCRIPTION_ATTEMPTS = 100
 
 type DecodedIndicationMessage struct {
-	RequestID             int32
+	RequestID             int32 // Ken Debug : RequestID == XappEventInstanceID
 	RequestSequenceNumber int32
 	FuncID                int32
 	ActionID              int32
@@ -357,27 +357,21 @@ type CellRFType struct {
 	RSSINR int `json:"rssinr"`
 }
 
-type NeighborCellRFType struct {
-	CellID string     `json:"CID"`
-	CellRF CellRFType `json:"CellRF"`
-}
-
-/* Ken Debug : Add NeighborCellsID */
-
+/*-------------------------Ken Debug : Create Data here----------------------------------*/
 type UeMetricsEntry struct {
-	UeID                   int64                `json:"UEID"`
-	ServingCellID          string               `json:"ServingCellID"`
-	MeasTimestampPDCPBytes Timestamp            `json:"MeasTimestampUEPDCPBytes"`
-	PDCPBytesDL            int64                `json:"UEPDCPBytesDL"`
-	PDCPBytesUL            int64                `json:"UEPDCPBytesUL"`
-	MeasTimestampPRB       Timestamp            `json:"MeasTimestampUEPRBUsage"`
-	PRBUsageDL             int64                `json:"UEPRBUsageDL"`
-	PRBUsageUL             int64                `json:"UEPRBUsageUL"`
-	MeasTimeRF             Timestamp            `json:"MeasTimestampRF"`
-	MeasPeriodRF           int64                `json:"MeasPeriodRF"`
-	MeasPeriodPDCP         int64                `json:"MeasPeriodUEPDCPBytes"`
-	MeasPeriodPRB          int64                `json:"MeasPeriodUEPRBUsage"`
-	ServingCellRF          CellRFType           `json:"ServingCellRF"`
-	NeighborCellsRF        []NeighborCellRFType `json:"NeighborCellRF"`
-	NeighborCellsID        []string             `json:"NeighborCellID"`
+	UeID                   int64        `json:"UEID"`
+	ServingCellID          string       `json:"ServingCellID"`
+	MeasTimestampPDCPBytes Timestamp    `json:"MeasTimestampUEPDCPBytes"`
+	PDCPBytesDL            int64        `json:"UEPDCPBytesDL"`
+	PDCPBytesUL            int64        `json:"UEPDCPBytesUL"`
+	MeasTimestampPRB       Timestamp    `json:"MeasTimestampUEPRBUsage"`
+	PRBUsageDL             int64        `json:"UEPRBUsageDL"`
+	PRBUsageUL             int64        `json:"UEPRBUsageUL"`
+	MeasTimeRF             Timestamp    `json:"MeasTimestampRF"`
+	MeasPeriodRF           int64        `json:"MeasPeriodRF"`
+	MeasPeriodPDCP         int64        `json:"MeasPeriodUEPDCPBytes"`
+	MeasPeriodPRB          int64        `json:"MeasPeriodUEPRBUsage"`
+	ServingCellRF          CellRFType   `json:"ServingCellRF"`
+	NeighborCellsRF        []CellRFType `json:"NeighborCellRF"`
+	NeighborCellsID        []string     `json:"NeighborCellID"` // Ken Debug : Create Neighbor Cell ID -> NeighborCellsID        []string     `json:"NeighborCellID"`
 }
