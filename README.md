@@ -17,11 +17,25 @@ This xApp can be deploy through dms_cli. Below are the steps:
 Bug : COPY failed: no source files were specified
 See Dockerfile
 
-## New function for writing InfluxDB by K. D.
+## Writing InfluxDB by K. D.
 
 - Write Data in UE Metrics to InfluxDB
 
-### Basic write
+### Why
+
+It is wrong to write JSON data to InfluxDB directly, 
+(I think OSC has left the coding space for us to write InfluxDB according to the data we need to use.)
+
+Official Documentation describe what kind of type of key & value we can use in InfluxDB v1.8 we're using in the E-Release Platform.
+    
+- Ref : https://docs.influxdata.com/influxdb/v1.8/write_protocols/line_protocol_reference/
+
+    - Field keys  only allows strings,
+    - and Field values allows floats, integers, strings, or Booleans,
+    - so we can shall the source code according to the protocol.
+
+### Quick start
+
 ```go
 // Define data in types.go
 type UeMetricsEntry struct {
