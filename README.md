@@ -11,6 +11,7 @@ This xApp can be deploy through dms_cli. Below are the steps:
 3. Deploy xApp via dms_cli
 4. Register xApp to RIC platform
 
+This xApp is based on osc ric-app-kpimon-gp commit Merge "Adding code files"  https://github.com/o-ran-sc/ric-app-kpimon-go
 
 ## Fix build image bug by K. D.
 
